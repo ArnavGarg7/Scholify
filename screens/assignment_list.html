@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed": "#341100",
+              "secondary-container": "#e2e0fc",
+              "surface-container-highest": "#e1e3e4",
+              "on-error-container": "#93000a",
+              "surface-container": "#edeeef",
+              "surface-bright": "#f8f9fa",
+              "inverse-surface": "#2e3132",
+              "secondary": "#5d5c74",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#63627a",
+              "tertiary-fixed-dim": "#ffb691",
+              "on-tertiary-container": "#0e0200",
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#414754",
+              "on-secondary-fixed-variant": "#45455b",
+              "inverse-primary": "#adc7ff",
+              "surface": "#f8f9fa",
+              "surface-container-high": "#e7e8e9",
+              "on-background": "#191c1d",
+              "on-secondary-fixed": "#1a1a2e",
+              "surface-variant": "#e1e3e4",
+              "on-primary-fixed": "#001a41",
+              "on-tertiary-fixed-variant": "#783100",
+              "on-primary-container": "#ffffff",
+              "surface-tint": "#005bc0",
+              "inverse-on-surface": "#f0f1f2",
+              "tertiary-container": "#c55500",
+              "outline": "#727785",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "tertiary": "#9e4300",
+              "error": "#ba1a1a",
+              "on-surface": "#191c1d",
+              "tertiary-fixed": "#ffdbcb",
+              "primary-container": "#1a73e8",
+              "surface-container-low": "#f3f4f5",
+              "primary-fixed-dim": "#adc7ff",
+              "primary-fixed": "#d8e2ff",
+              "surface-dim": "#d9dadb",
+              "outline-variant": "#c1c6d6",
+              "on-primary-fixed-variant": "#004493",
+              "secondary-fixed-dim": "#c6c4df",
+              "surface-container-lowest": "#ffffff",
+              "background": "#f8f9fa",
+              "primary": "#005bbf",
+              "secondary-fixed": "#e2e0fc",
+              "on-tertiary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-16 w-full bg-white/85 backdrop-blur-md shadow-[0_8px_32px_rgba(25,28,29,0.06)]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="User profile avatar smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbaFIb62ZcOQDXDNRSK41GJ3zp_iX4rXmXCSebMbjpSYV-_HClbtk2yUxDlwcjknktVz4pAZ3JplW86SbLVA-ywihnWpYMunQnFac45scYDOYgQt3nh0WrVCvE3rXXwVIvpXTt1QymLtC0628sNLlSAEJXhdJia7knHWTC-WTUG3cOrUMZ29R-jpLBN5PxkUoexAYPsCYC9iw0la40GtKG2iFtSiK8BDznSU4rYsl-9i7Rv1mQmHQZ-MMxVVmCpjhiJGGzPzzApfgE"/>
+</div>
+<span class="font-manrope font-extrabold text-blue-700 text-xl tracking-tight">Scholify</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-slate-500" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Header Section -->
+<div class="flex items-end justify-between mb-8">
+<div>
+<h1 class="text-3xl font-extrabold text-on-surface tracking-tight leading-tight">Assignment feed</h1>
+<p class="text-on-surface-variant font-medium mt-1">You have 4 pending tasks</p>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full text-on-surface-variant font-semibold text-sm hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_list">filter_list</span>
+                Pending (4)
+            </button>
+</div>
+<!-- Assignment Cards List -->
+<div class="space-y-4">
+<!-- Urgent Assignment (1 Day) -->
+<div class="group bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col gap-4 relative overflow-hidden border-l-4 border-error">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant/60">Operating Systems</span>
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[10px] font-bold">HIGH PRIORITY</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface">OS Lab Report</h3>
+</div>
+<div class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold">
+                        1 day left
+                    </div>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center gap-2 text-on-surface-variant text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" data-icon="calendar_today">calendar_today</span>
+                        Due Mar 21
+                    </div>
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-lowest bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">JD</div>
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-lowest bg-secondary/10 flex items-center justify-center text-[10px] font-bold text-secondary">AM</div>
+</div>
+</div>
+</div>
+<!-- Medium Urgency (3 Days) -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col gap-4 border-l-4 border-tertiary">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant/60">Advanced Calculus</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold">MEDIUM PRIORITY</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface">Vector Fields Problem Set</h3>
+</div>
+<div class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-bold">
+                        3 days left
+                    </div>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center gap-2 text-on-surface-variant text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" data-icon="calendar_today">calendar_today</span>
+                        Due Mar 23
+                    </div>
+<div class="flex items-center gap-1 text-[11px] text-on-surface-variant/70 italic">
+<span class="material-symbols-outlined text-[14px]" data-icon="swipe_left">swipe_left</span>
+                        Swipe to complete
+                    </div>
+</div>
+</div>
+<!-- Low Urgency (8 Days) -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col gap-4 border-l-4 border-emerald-500">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant/60">Ethics in AI</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-[10px] font-bold">LOW PRIORITY</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface">Case Study Analysis</h3>
+</div>
+<div class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                        8 days left
+                    </div>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center gap-2 text-on-surface-variant text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" data-icon="calendar_today">calendar_today</span>
+                        Due Mar 28
+                    </div>
+</div>
+</div>
+<!-- Another Low Urgency -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col gap-4 border-l-4 border-emerald-500">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant/60">Database Systems</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold">MEDIUM PRIORITY</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface">SQL Schema Design</h3>
+</div>
+<div class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                        12 days left
+                    </div>
+</div>
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center gap-2 text-on-surface-variant text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]" data-icon="calendar_today">calendar_today</span>
+                        Due Apr 02
+                    </div>
+</div>
+</div>
+</div>
+<!-- Add Assignment Button -->
+<div class="mt-12 flex justify-center">
+<button class="flex items-center gap-3 px-8 py-4 rounded-full bg-secondary-container text-on-secondary-fixed font-bold shadow-sm hover:bg-secondary-fixed-dim transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Add assignment
+            </button>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center shadow-[0_8px_32px_rgba(0,91,192,0.3)] z-50 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[28px]" data-icon="add">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full rounded-t-2xl z-50 bg-white/85 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.04)] flex justify-around items-center h-20 px-4 pb-safe">
+<a class="flex flex-col items-center justify-center text-slate-500 px-3 py-1.5 hover:text-blue-600 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-manrope font-medium text-[10px] mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-3 py-1.5 hover:text-blue-600 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="event_available">event_available</span>
+<span class="font-manrope font-medium text-[10px] mt-1">Attendance</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-3 py-1.5 hover:text-blue-600 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="grade">grade</span>
+<span class="font-manrope font-medium text-[10px] mt-1">Grades</span>
+</a>
+<!-- Active Tab: Assignments -->
+<a class="flex flex-col items-center justify-center bg-blue-50 text-blue-700 rounded-2xl px-3 py-1.5 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assignment" style="font-variation-settings: 'FILL' 1;">assignment</span>
+<span class="font-manrope font-medium text-[10px] mt-1">Assignments</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-3 py-1.5 hover:text-blue-600 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+<span class="font-manrope font-medium text-[10px] mt-1">More</span>
+</a>
+</nav>
+</body></html>
