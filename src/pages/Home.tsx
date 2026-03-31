@@ -46,7 +46,7 @@ export default function Home() {
       const daySlot = c.timeSlots?.find((s) => s.day === selectedDay);
       return {
         ...c,
-        displayTime: daySlot?.time || '',
+        displayTime: daySlot?.time || c.time || '',
         displayRoom: daySlot?.room || c.room || '',
       };
     });
@@ -213,7 +213,8 @@ export default function Home() {
           ) : (
             courses.map((course) => {
               const calc = attendanceCalcs.get(course.id);
-              const healthScore = calc ? calculateHealthScore(calc.percentage, 0, 0) : 0;
+              const activeCourseAssignments = allAssignments.filter(a => a.courseId === course.id && !a.completed).length;
+              const healthScore = calc ? calculateHealthScore(calc.percentage, -1, activeCourseAssignments) : 0;
               const color = course.color || getHealthColor(healthScore);
 
               return (

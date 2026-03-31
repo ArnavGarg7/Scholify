@@ -39,6 +39,12 @@ export default function AddCourseModal({ onClose, initialCourse }: AddCourseModa
       totalClassesHeld: totalHeld,
       totalAttended: totalAttended,
       creditHours: credits,
+      // Regenerate timeSlots to ensure edited timings override old/broken AI timings
+      timeSlots: selectedDays.map(day => ({
+        day,
+        time,
+        room: room.trim()
+      }))
     };
 
     if (initialCourse) {
