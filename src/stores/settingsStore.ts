@@ -23,8 +23,15 @@ interface SettingsState {
   university: string;
   onboardingCompleted: boolean;
 
+  // Semester Dates
+  semesterStartDate: string; // ISO date
+  semesterEndDate: string;   // ISO date
+
   // Grading
   gradingScheme: GradingScheme;
+
+  // Theme
+  themeMode: 'dark' | 'light';
 
   // Notifications
   notificationsEnabled: boolean;
@@ -40,10 +47,16 @@ interface SettingsState {
   // Study Timer
   studyLogs: { courseId: string; date: string; minutes: number }[];
 
+  // Study Streak
+  studyStreak: number;
+  lastStudyDate: string; // ISO date
+
   // Actions
   setProfile: (name: string, university: string) => void;
   completeOnboarding: () => void;
+  setSemesterDates: (start: string, end: string) => void;
   setGradingScheme: (scheme: GradingScheme) => void;
+  setThemeMode: (mode: 'dark' | 'light') => void;
   setNotifications: (enabled: boolean) => void;
   setQuietHours: (start: string, end: string) => void;
 
@@ -71,17 +84,25 @@ export const useSettingsStore = create<SettingsState>()(
       studentName: '',
       university: 'UPES',
       onboardingCompleted: false,
+      semesterStartDate: '',
+      semesterEndDate: '',
       gradingScheme: UPES_GRADING_SCHEME,
+      themeMode: 'dark' as const,
       notificationsEnabled: false,
       quietHoursStart: '22:00',
       quietHoursEnd: '07:00',
       exams: [],
       semesterHistory: [],
       studyLogs: [],
+      studyStreak: 0,
+      lastStudyDate: '',
 
       setProfile: (name, university) => set({ studentName: name, university }),
       completeOnboarding: () => set({ onboardingCompleted: true }),
+      setSemesterDates: (start, end) =>
+        set({ semesterStartDate: start, semesterEndDate: end }),
       setGradingScheme: (scheme) => set({ gradingScheme: scheme }),
+      setThemeMode: (mode) => set({ themeMode: mode }),
       setNotifications: (enabled) => set({ notificationsEnabled: enabled }),
       setQuietHours: (start, end) =>
         set({ quietHoursStart: start, quietHoursEnd: end }),
@@ -119,13 +140,33 @@ export const useSettingsStore = create<SettingsState>()(
           semesterHistory: state.semesterHistory.filter((s) => s.id !== id),
         })),
 
-      logStudyTime: (courseId, minutes) =>
+      logStudyTime: (courseId, minutes) => {
+        const today = new Date().toISOString().split('T')[0];
+        const { lastStudyDate, studyStreak } = get();
+
+        // Calculate streak
+        let newStreak = studyStreak;
+        if (lastStudyDate !== today) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+          if (lastStudyDate === yesterdayStr) {
+            newStreak = studyStreak + 1;
+          } else if (lastStudyDate !== today) {
+            newStreak = 1;
+          }
+        }
+
         set((state) => ({
           studyLogs: [
             ...state.studyLogs,
-            { courseId, date: new Date().toISOString().split('T')[0], minutes },
+            { courseId, date: today, minutes },
           ],
-        })),
+          studyStreak: newStreak,
+          lastStudyDate: today,
+        }));
+      },
 
       exportData: () => {
         const allData: Record<string, unknown> = {};
@@ -135,6 +176,8 @@ export const useSettingsStore = create<SettingsState>()(
           'scholify-grades',
           'scholify-assignments',
           'scholify-settings',
+          'scholify-holidays',
+          'scholify-notes',
         ];
         keys.forEach((key) => {
           const data = localStorage.getItem(key);

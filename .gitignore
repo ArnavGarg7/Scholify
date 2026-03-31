@@ -1,1 +1,9 @@
-node_modules
+node_modules/
+dist/
+.env
+.firebase/
+functions/node_modules/
+functions/lib/
+ANTIGRAVITY_PROMPT.md
+*.log
+.DS_Store

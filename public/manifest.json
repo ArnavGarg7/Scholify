@@ -1,0 +1,17 @@
+{
+  "name": "Scholify",
+  "short_name": "Scholify",
+  "description": "Smart Academic Companion — Track attendance, manage assignments, and plan your GPA.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A1A",
+  "theme_color": "#0A0A1A",
+  "icons": [
+    {
+      "src": "/scholify-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

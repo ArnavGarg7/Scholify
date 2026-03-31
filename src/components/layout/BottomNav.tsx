@@ -17,7 +17,7 @@ export default function BottomNav() {
     return location.pathname.startsWith(path);
   };
 
-  const isMoreActive = ['/exams', '/study', '/cgpa', '/settings', '/more'].some((p) =>
+  const isMoreActive = ['/exams', '/study', '/cgpa', '/settings', '/more', '/calendar'].some((p) =>
     location.pathname.startsWith(p)
   );
 

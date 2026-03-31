@@ -3,6 +3,7 @@ import { useCoursesStore } from '../stores/coursesStore';
 import { daysUntil } from '../utils/dateUtils';
 import { getDaysColor } from '../constants/theme';
 import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import AddAssignmentModal from '../components/ui/AddAssignmentModal';
 
 export default function AssignmentList() {
@@ -45,9 +46,41 @@ export default function AssignmentList() {
   };
 
   return (
-    <div
-      className="pt-4 pb-4 animate-fade-in"
+    <motion.div
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.25 }} className="pt-4 pb-4 animate-fade-in"
     >
+      {/* Summary Stats */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="rf-card p-3 text-center">
+          <span className="text-2xl font-headline font-black text-rf-cyan rf-number">{allAssignments.length}</span>
+          <p className="text-[9px] text-gray-500 mt-0.5">Total</p>
+        </div>
+        <div className="rf-card p-3 text-center">
+          <span className="text-2xl font-headline font-black text-rf-green rf-number">{completedAssignments.length}</span>
+          <p className="text-[9px] text-gray-500 mt-0.5">Completed</p>
+        </div>
+        <div className="rf-card p-3 text-center">
+          <span className="text-2xl font-headline font-black text-rf-red rf-number">{overdue.length}</span>
+          <p className="text-[9px] text-gray-500 mt-0.5">Overdue</p>
+        </div>
+      </div>
+
+      {/* Completion Bar */}
+      {allAssignments.length > 0 && (
+        <div className="rf-card p-3 mb-6">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] text-gray-500">Completion Rate</span>
+            <span className="text-xs font-bold text-rf-cyan rf-number">
+              {Math.round((completedAssignments.length / allAssignments.length) * 100)}%
+            </span>
+          </div>
+          <div className="w-full h-2 bg-rf-surface rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-rf-cyan to-rf-green rounded-full transition-all duration-500"
+              style={{ width: `${(completedAssignments.length / allAssignments.length) * 100}%` }} />
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-end justify-between mb-6">
         <div>
@@ -130,7 +163,7 @@ export default function AssignmentList() {
       </button>
 
       {showAdd && <AddAssignmentModal onClose={() => setShowAdd(false)} />}
-    </div>
+    </motion.div>
   );
 }
 

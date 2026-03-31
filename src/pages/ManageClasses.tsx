@@ -2,17 +2,26 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCoursesStore, Course } from '../stores/coursesStore';
+import { useToastStore } from '../stores/toastStore';
 import AddCourseModal from '../components/ui/AddCourseModal';
 
 export default function ManageClasses() {
   const navigate = useNavigate();
   const courses = useCoursesStore((s) => s.courses);
   const deleteCourse = useCoursesStore((s) => s.deleteCourse);
+  const addToast = useToastStore((s) => s.addToast);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete ${name}?\n\nThis will remove the course and it cannot be undone. You may also need to manually clear its attendance/grades data if you want to reuse the store.`)) {
+    if (confirmDeleteId === id) {
       deleteCourse(id);
+      addToast(`Deleted ${name}`, 'info');
+      setConfirmDeleteId(null);
+    } else {
+      setConfirmDeleteId(id);
+      addToast('Tap delete again to confirm', 'warning', 3000);
+      setTimeout(() => setConfirmDeleteId(null), 3000);
     }
   };
 

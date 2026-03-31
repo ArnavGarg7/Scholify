@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useCoursesStore } from '../stores/coursesStore';
 import { useAttendanceStore } from '../stores/attendanceStore';
 import { useAttendanceCalc } from '../hooks/useAttendanceCalc';
+import { useNotesStore } from '../stores/notesStore';
+import { useHolidayStore } from '../stores/holidayStore';
 import { getToday } from '../utils/dateUtils';
 import { useState, useMemo } from 'react';
 
@@ -19,8 +21,13 @@ export default function AttendanceDetail() {
     [allRecords, courseId]
   );
   const calc = useAttendanceCalc(courseId || '');
+  const courseNote = useNotesStore((s) => s.getNoteByCourse(courseId || ''));
+  const upsertNote = useNotesStore((s) => s.upsertNote);
+  const isHoliday = useHolidayStore((s) => s.isHoliday);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showNotes, setShowNotes] = useState(false);
+  const [noteText, setNoteText] = useState(courseNote?.content || '');
 
   if (!course || !calc) {
     return (
@@ -326,6 +333,36 @@ export default function AttendanceDetail() {
           </div>
         </div>
       )}
+      {/* Course Notes Section */}
+      <section className="rf-card p-4 mt-4">
+        <button onClick={() => setShowNotes(!showNotes)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <h3 className="text-sm font-headline font-bold text-white flex items-center gap-2">
+            <span className="material-symbols-outlined text-rf-cyan text-lg">note</span>
+            Course Notes
+          </h3>
+          <span className="material-symbols-outlined text-gray-500 text-sm">
+            {showNotes ? 'expand_less' : 'expand_more'}
+          </span>
+        </button>
+        {showNotes && (
+          <div className="mt-3 space-y-2 animate-fade-in">
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Add quick notes for this course (syllabus links, professor info, etc.)..."
+              className="w-full h-28 px-4 py-3 text-sm text-white rounded-xl resize-none"
+            />
+            <button
+              onClick={() => { upsertNote(courseId!, noteText); }}
+              className="rf-btn-primary px-4 py-1.5 rounded-full text-xs"
+            >
+              Save Notes
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

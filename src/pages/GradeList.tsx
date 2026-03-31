@@ -4,6 +4,7 @@ import { useCoursesStore } from '../stores/coursesStore';
 import { useGradesStore } from '../stores/gradesStore';
 import { useGradeCalc } from '../hooks/useGradeCalc';
 import { getGradeColor } from '../utils/gradeUtils';
+import EmptyState from '../components/ui/EmptyState';
 
 function CourseGradeCard({ courseId }: { courseId: string }) {
   const navigate = useNavigate();
@@ -73,10 +74,11 @@ export default function GradeList() {
 
       <div className="space-y-3">
         {courses.length === 0 ? (
-          <div className="rf-card p-8 text-center">
-            <span className="material-symbols-outlined text-gray-600 text-4xl mb-3 block">grade</span>
-            <p className="text-sm text-gray-400">Add courses to start tracking grades</p>
-          </div>
+          <EmptyState
+            icon="grade"
+            title="No Courses Yet"
+            description="Add courses in onboarding or settings to start tracking your grades."
+          />
         ) : (
           courses.map((c) => <CourseGradeCard key={c.id} courseId={c.id} />)
         )}

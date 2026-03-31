@@ -9,6 +9,7 @@ const MAIN_ITEMS = [
 ];
 
 const MORE_ITEMS = [
+  { path: '/calendar', label: 'Academic Calendar', icon: 'calendar_month' },
   { path: '/exams', label: 'Exam Countdown', icon: 'timer' },
   { path: '/study', label: 'Study Timer', icon: 'self_improvement' },
   { path: '/cgpa', label: 'CGPA Planner', icon: 'calculate' },
@@ -33,14 +34,10 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div 
-        onClick={() => navigate('/onboarding')}
+        onClick={() => navigate('/')}
         className="h-14 flex items-center px-4 border-b border-rf-cyan-dim gap-3 cursor-pointer group hover:bg-rf-card/50 transition-colors"
       >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-container flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-          <span className="material-symbols-outlined text-white text-lg filled">
-            school
-          </span>
-        </div>
+        <img src="/scholify-logo.png" alt="Scholify" className="w-8 h-8 rounded-lg object-contain flex-shrink-0 group-hover:scale-105 transition-transform" />
         {!collapsed && (
           <span className="font-headline font-extrabold text-rf-cyan text-lg tracking-tight group-hover:text-white transition-colors">
             Scholify

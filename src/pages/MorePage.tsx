@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const MORE_LINKS = [
+  { path: '/calendar', label: 'Academic Calendar', icon: 'calendar_month', desc: 'Monthly view with holidays & events' },
   { path: '/exams', label: 'Exam Countdown', icon: 'timer', desc: 'Track upcoming exams' },
   { path: '/study', label: 'Study Timer', icon: 'self_improvement', desc: 'Pomodoro focus sessions' },
   { path: '/cgpa', label: 'CGPA Planner', icon: 'calculate', desc: 'Plan your semester GPA' },

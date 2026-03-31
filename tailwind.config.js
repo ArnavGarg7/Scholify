@@ -58,15 +58,16 @@ export default {
         "on-tertiary": "#ffffff",
 
         // Retro-futuristic tokens
-        "rf-base": "#0A0A1A",
-        "rf-surface": "#0F0F2E",
-        "rf-card": "#151530",
-        "rf-cyan": "#00D4FF",
-        "rf-green": "#00FF88",
-        "rf-amber": "#FFB800",
-        "rf-red": "#FF3B5C",
-        "rf-cyan-dim": "rgba(0, 212, 255, 0.2)",
-        "rf-cyan-glow": "rgba(0, 212, 255, 0.3)",
+        // Retro-futuristic tokens
+        "rf-base": "var(--rf-base, #0A0A1A)",
+        "rf-surface": "var(--rf-surface, #0F0F2E)",
+        "rf-card": "var(--rf-card, #151530)",
+        "rf-cyan": "var(--rf-cyan, #00D4FF)",
+        "rf-green": "var(--rf-green, #00FF88)",
+        "rf-amber": "var(--rf-amber, #FFB800)",
+        "rf-red": "var(--rf-red, #FF3B5C)",
+        "rf-cyan-dim": "var(--rf-border, rgba(0, 212, 255, 0.2))",
+        "rf-cyan-glow": "var(--rf-glow, rgba(0, 212, 255, 0.3))",
       },
       fontFamily: {
         headline: ["Manrope", "sans-serif"],

@@ -23,3 +23,18 @@ scholify/
     └── PRD.html                ← Full product requirements document
 ```
 
+### What Antigravity Will Build
+A **React + Vite web app** (not a mobile app) with:
+- Retro-futuristic dark theme on top of the Stitch component designs
+- All 5 designed screens + 8 additional screens to build
+- localStorage persistence (no backend needed)
+- Web Notifications API for alerts
+- Responsive: mobile bottom nav + desktop sidebar
+
+### Screens Still Needed from Stitch (Optional)
+You can design these in Stitch and add to `/screens/` before the final build:
+- mer
+- Settings/Grade List + Grade Detail
+- CGPA Planner
+- Exam Countdown
+- Study Ti

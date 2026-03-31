@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useCoursesStore } from '../stores/coursesStore';
+import { useHolidayStore } from '../stores/holidayStore';
+import { useToastStore } from '../stores/toastStore';
 import { auth, googleProvider, functions } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
@@ -29,12 +31,16 @@ type LocalCourse = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { setProfile, completeOnboarding, setNotifications } = useSettingsStore();
+  const { setProfile, completeOnboarding, setNotifications, setSemesterDates } = useSettingsStore();
   const addCourse = useCoursesStore((s) => s.addCourse);
+  const initHolidays = useHolidayStore((s) => s.initializeDefaults);
+  const addToast = useToastStore((s) => s.addToast);
   const [name, setName] = useState('');
   const [university, setUniversity] = useState('UPES');
   const [scheme, setScheme] = useState('UPES 10-pt scale');
   const [authError, setAuthError] = useState('');
+  const [semStart, setSemStart] = useState('');
+  const [semEnd, setSemEnd] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extracting, setExtracting] = useState(false);
@@ -84,15 +90,24 @@ export default function Onboarding() {
       const response = await extractTimetableFn({ pdfText: rawText });
       
       const data = response.data as { courses: any[] };
-      const newCourses: LocalCourse[] = data.courses.map((c) => ({
-        ...c,
-        id: crypto.randomUUID(),
-      }));
-
+      // Frontend deduplication merge
+      const courseMap = new Map<string, LocalCourse>();
+      for (const c of data.courses) {
+        const key = (c.name || '').trim().toLowerCase();
+        if (courseMap.has(key)) {
+          const existing = courseMap.get(key)!;
+          const allDays = new Set([...existing.scheduleDays, ...(c.scheduleDays || [])]);
+          existing.scheduleDays = Array.from(allDays);
+        } else {
+          courseMap.set(key, { ...c, id: crypto.randomUUID() });
+        }
+      }
+      const newCourses = Array.from(courseMap.values());
       setLocalCourses((prev) => [...prev, ...newCourses]);
+      addToast(`Extracted ${newCourses.length} courses successfully!`, 'success');
     } catch (error: any) {
       console.error("Extraction error:", error);
-      alert(error.message || "Failed to parse timetable. Ensure your Firebase backend is deployed.");
+      addToast(error.message || "Failed to parse timetable.", 'error', 5000);
     } finally {
       setExtracting(false);
     }
@@ -137,15 +152,15 @@ export default function Onboarding() {
 
   const handleComplete = () => {
     setProfile(name || 'Student', university);
+    if (semStart && semEnd) setSemesterDates(semStart, semEnd);
+    initHolidays(); // Seed Indian govt holidays
 
-    // Filter out completely empty courses before saving and prevent duplicates
     const existingCourses = useCoursesStore.getState().courses;
 
     localCourses.forEach((course) => {
       if (course.name.trim() || course.code.trim()) {
-        // Prevent duplicate courses (useful for returning sessions)
         const isDuplicate = existingCourses.some(
-          (c) => c.name === course.name || c.code === course.code
+          (c) => c.name.toLowerCase() === (course.name || '').toLowerCase() || c.code === course.code
         );
 
         if (!isDuplicate) {
@@ -155,7 +170,7 @@ export default function Onboarding() {
             scheduleDays: course.scheduleDays,
             time: course.time || '10:00 AM',
             room: course.room || 'TBA',
-            semesterStartDate: new Date().toISOString(),
+            semesterStartDate: semStart || new Date().toISOString(),
             totalClassesHeld: 0,
             totalAttended: 0,
             attendanceThreshold: 75,
@@ -172,6 +187,7 @@ export default function Onboarding() {
     }
 
     completeOnboarding();
+    addToast('Welcome to Scholify! Your setup is complete.', 'success');
     navigate('/', { replace: true });
   };
 
@@ -189,9 +205,7 @@ export default function Onboarding() {
         className="max-w-xl mx-auto px-6 pt-12 pb-24 md:pt-20 relative z-10"
       >
         <header className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-white mb-6 shadow-[0_8px_32px_rgba(0,212,255,0.2)] border border-rf-cyan-dim">
-            <span className="material-symbols-outlined text-3xl filled">school</span>
-          </div>
+          <img src="/scholify-logo.png" alt="Scholify" className="w-20 h-20 mx-auto mb-6 rounded-2xl shadow-[0_8px_32px_rgba(0,212,255,0.2)] border border-rf-cyan-dim object-contain" />
           <h1 className="font-headline font-extrabold text-4xl tracking-tight text-white mb-2">
             Scholify
           </h1>
@@ -262,6 +276,32 @@ export default function Onboarding() {
               Setup Timetable
             </h2>
             <div className="space-y-5">
+
+              {/* Semester Dates */}
+              <div className="space-y-3 mb-6 border-b border-rf-cyan-dim/20 pb-6">
+                <label className="font-label font-medium text-sm text-gray-400 ml-1">Semester Period</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-1 block ml-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={semStart}
+                      onChange={(e) => setSemStart(e.target.value)}
+                      className="w-full h-12 px-4 text-sm text-white rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-500 mb-1 block ml-1">End Date</label>
+                    <input
+                      type="date"
+                      value={semEnd}
+                      onChange={(e) => setSemEnd(e.target.value)}
+                      className="w-full h-12 px-4 text-sm text-white rounded-xl"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-gray-600 ml-1">Used to calculate total classes and attendance projections</p>
+              </div>
               
               {/* Grading Scheme (Moved here to group Academic details) */}
               <div className="space-y-2 mb-6 border-b border-rf-cyan-dim/20 pb-6">

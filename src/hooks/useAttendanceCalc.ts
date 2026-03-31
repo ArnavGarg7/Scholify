@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useCoursesStore, Course } from '../stores/coursesStore';
 import { useAttendanceStore } from '../stores/attendanceStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { useHolidayStore } from '../stores/holidayStore';
 
 export interface AttendanceCalc {
   attended: number;
@@ -9,15 +11,42 @@ export interface AttendanceCalc {
   percentage: number;
   status: 'safe' | 'warning' | 'danger';
   safeSkips: number;
-  classesNeeded: number; // classes to attend to reach threshold
-  maxPotential: number; // max % if all remaining attended
+  classesNeeded: number;
+  maxPotential: number;
   remaining: number;
+}
+
+function countScheduledClasses(
+  scheduleDays: string[],
+  startDate: string,
+  endDate: string,
+  holidays: { date: string; enabled: boolean }[]
+): number {
+  if (!startDate || !endDate) return 0;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const holidayDates = new Set(holidays.filter(h => h.enabled).map(h => h.date));
+  let count = 0;
+  const current = new Date(start);
+
+  while (current <= end) {
+    const dayStr = current.toLocaleDateString('en-US', { weekday: 'short' });
+    const dateStr = current.toISOString().split('T')[0];
+    if (scheduleDays.includes(dayStr) && !holidayDates.has(dateStr)) {
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
 }
 
 export function useAttendanceCalc(courseId: string): AttendanceCalc | null {
   const course = useCoursesStore((s) => s.courses.find((c) => c.id === courseId));
   const allRecords = useAttendanceStore((s) => s.records);
-  const records = useMemo(() => 
+  const semStart = useSettingsStore((s) => s.semesterStartDate);
+  const semEnd = useSettingsStore((s) => s.semesterEndDate);
+  const holidays = useHolidayStore((s) => s.holidays);
+  const records = useMemo(() =>
     allRecords.filter((r) => r.courseId === courseId),
     [allRecords, courseId]
   );
@@ -30,20 +59,23 @@ export function useAttendanceCalc(courseId: string): AttendanceCalc | null {
   const percentage = total === 0 ? 100 : Math.round((attended / total) * 100);
   const threshold = course.attendanceThreshold / 100;
 
-  // Estimate remaining classes (simplified: assume ~14 more weeks)
-  const remaining = Math.max(0, 14 * course.scheduleDays.length - records.length);
+  // Smart remaining calculation using semester dates and holidays
+  let remaining: number;
+  if (semStart && semEnd) {
+    const today = new Date().toISOString().split('T')[0];
+    const futureStart = today > semStart ? today : semStart;
+    const totalScheduled = countScheduledClasses(course.scheduleDays, semStart, semEnd, holidays);
+    const futureScheduled = countScheduledClasses(course.scheduleDays, futureStart, semEnd, holidays);
+    remaining = Math.max(0, futureScheduled - records.filter(r => r.date >= futureStart).length);
+  } else {
+    remaining = Math.max(0, 14 * course.scheduleDays.length - records.length);
+  }
 
-  // Safe skips: how many more classes can skip while staying >= threshold
   const future = remaining;
-  const safeSkips = Math.max(
-    0,
-    Math.floor(attended + future - threshold * (total + future))
-  );
+  const safeSkips = Math.max(0, Math.floor(attended + future - threshold * (total + future)));
 
-  // Classes needed to reach threshold if currently below
   let classesNeeded = 0;
   if (percentage < course.attendanceThreshold) {
-    // Need x more presents: (attended + x) / (total + x) >= threshold
     classesNeeded = Math.ceil((threshold * total - attended) / (1 - threshold));
   }
 
@@ -53,22 +85,17 @@ export function useAttendanceCalc(courseId: string): AttendanceCalc | null {
     percentage >= 80 ? 'safe' : percentage >= 75 ? 'warning' : 'danger';
 
   return {
-    attended,
-    absent,
-    total,
-    percentage,
-    status,
-    safeSkips,
-    classesNeeded,
-    maxPotential,
-    remaining,
+    attended, absent, total, percentage, status, safeSkips, classesNeeded, maxPotential, remaining,
   };
 }
 
 export function useAllAttendanceCalc(): Map<string, AttendanceCalc> {
   const courses = useCoursesStore((s) => s.courses);
   const records = useAttendanceStore((s) => s.records);
-  
+  const semStart = useSettingsStore((s) => s.semesterStartDate);
+  const semEnd = useSettingsStore((s) => s.semesterEndDate);
+  const holidays = useHolidayStore((s) => s.holidays);
+
   return useMemo(() => {
     const result = new Map<string, AttendanceCalc>();
     for (const course of courses) {
@@ -78,7 +105,17 @@ export function useAllAttendanceCalc(): Map<string, AttendanceCalc> {
       const total = attended + absent;
       const percentage = total === 0 ? 100 : Math.round((attended / total) * 100);
       const threshold = course.attendanceThreshold / 100;
-      const remaining = Math.max(0, 14 * course.scheduleDays.length - courseRecords.length);
+
+      let remaining: number;
+      if (semStart && semEnd) {
+        const today = new Date().toISOString().split('T')[0];
+        const futureStart = today > semStart ? today : semStart;
+        const futureScheduled = countScheduledClasses(course.scheduleDays, futureStart, semEnd, holidays);
+        remaining = Math.max(0, futureScheduled - courseRecords.filter(r => r.date >= futureStart).length);
+      } else {
+        remaining = Math.max(0, 14 * course.scheduleDays.length - courseRecords.length);
+      }
+
       const future = remaining;
       const safeSkips = Math.max(0, Math.floor(attended + future - threshold * (total + future)));
       let classesNeeded = 0;
@@ -94,5 +131,5 @@ export function useAllAttendanceCalc(): Map<string, AttendanceCalc> {
       });
     }
     return result;
-  }, [courses, records]);
+  }, [courses, records, semStart, semEnd, holidays]);
 }

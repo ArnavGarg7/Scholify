@@ -280,3 +280,153 @@ select {
   box-shadow: 0 8px 32px rgba(0, 91, 191, 0.4),
               0 0 20px rgba(0, 212, 255, 0.35);
 }
+
+/* ============================================================
+   Light Theme
+   ============================================================ */
+[data-theme="light"] {
+  --rf-base: #F8FAFC;
+  --rf-surface: #F1F5F9;
+  --rf-card: #FFFFFF;
+  --rf-cyan: #0077B6;
+  --rf-green: #059669;
+  --rf-amber: #D97706;
+  --rf-red: #DC2626;
+  --rf-primary: #0077B6;
+  --rf-border: rgba(0, 119, 182, 0.15);
+  --rf-glow: rgba(0, 119, 182, 0.05);
+}
+
+[data-theme="light"] body {
+  background-color: var(--rf-base);
+  color: #0F172A;
+}
+
+[data-theme="light"] body::before {
+  display: none;
+}
+
+/* All text that was hardcoded white → dark */
+[data-theme="light"] .text-white {
+  color: #1a1a2e !important;
+}
+
+[data-theme="light"] .text-gray-300 {
+  color: #4a5568 !important;
+}
+
+[data-theme="light"] .text-gray-400 {
+  color: #5a6577 !important;
+}
+
+[data-theme="light"] .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+[data-theme="light"] .text-gray-600 {
+  color: #7b8598 !important;
+}
+
+/* Inputs */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background: #EDF0F7;
+  border-color: rgba(0, 119, 182, 0.2);
+  color: #1a1a2e;
+}
+
+/* Cards */
+[data-theme="light"] .rf-card {
+  background: var(--rf-card);
+  border-color: rgba(0, 119, 182, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Glass header/topbar */
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  border-color: rgba(0, 119, 182, 0.08) !important;
+}
+
+/* Sidebar */
+[data-theme="light"] aside {
+  background: #FFFFFF !important;
+  border-right-color: rgba(0, 119, 182, 0.1) !important;
+}
+
+/* SVG ring backgrounds → lighter grey */
+[data-theme="light"] svg circle[stroke="rgba(255,255,255,0.06)"] {
+  stroke: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] svg circle[stroke="rgba(255,255,255,0.08)"] {
+  stroke: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Badges (rf-number) keep their colors */
+/* Buttons */
+[data-theme="light"] .rf-btn-primary {
+  background: linear-gradient(135deg, #0077B6, #00B4D8);
+  color: #fff !important;
+}
+
+[data-theme="light"] button.bg-rf-surface {
+  background: var(--rf-surface);
+}
+
+/* Borders and dividers */
+[data-theme="light"] .border-rf-cyan-dim,
+[data-theme="light"] .border-rf-cyan-dim\/20,
+[data-theme="light"] .border-rf-cyan-dim\/30 {
+  border-color: rgba(0, 119, 182, 0.1) !important;
+}
+
+/* ============================================================
+   Responsive Desktop Layout (B4)
+   ============================================================ */
+@media (min-width: 769px) {
+  .app-container {
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0, 212, 255, 0.08),
+                0 0 80px rgba(0, 212, 255, 0.04);
+    border-left: 1px solid rgba(0, 212, 255, 0.1);
+    border-right: 1px solid rgba(0, 212, 255, 0.1);
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-container {
+    max-width: 900px;
+  }
+}
+
+/* ============================================================
+   Utility Animations
+   ============================================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* Loading spinner */
+.border-3 {
+  border-width: 3px;
+}
+

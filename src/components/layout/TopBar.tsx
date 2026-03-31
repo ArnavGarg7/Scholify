@@ -16,12 +16,10 @@ export default function TopBar() {
   return (
     <header className="fixed top-0 w-full z-50 glass shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex items-center justify-between px-5 h-14 border-b border-rf-cyan-dim">
       <div 
-        onClick={() => navigate('/onboarding')}
+        onClick={() => navigate('/')}
         className="flex items-center gap-3 cursor-pointer group"
       >
-        <div className="w-8 h-8 rounded-full bg-rf-surface border border-rf-cyan-dim flex items-center justify-center text-rf-cyan text-xs font-bold font-mono group-hover:bg-rf-card transition-colors">
-          {initials}
-        </div>
+        <img src="/scholify-logo.png" alt="Scholify" className="w-8 h-8 rounded-lg object-contain group-hover:scale-105 transition-transform" />
         <span className="font-headline font-extrabold text-rf-cyan text-lg tracking-tight group-hover:text-white transition-colors">
           Scholify
         </span>
