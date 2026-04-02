@@ -54,7 +54,9 @@ function AppLayout() {
 
 function RequireOnboarding() {
   const onboardingCompleted = useSettingsStore((s) => s.onboardingCompleted);
-  if (!onboardingCompleted) {
+  const sessionActive = sessionStorage.getItem('scholify_session_active') === 'true';
+  
+  if (!onboardingCompleted || !sessionActive) {
     return <Navigate to="/onboarding" replace />;
   }
   return <AppLayout />;
@@ -62,11 +64,6 @@ function RequireOnboarding() {
 
 export default function App() {
   const themeMode = useSettingsStore((s) => s.themeMode);
-
-  // Session tracking
-  useEffect(() => {
-    sessionStorage.setItem('scholify_session_active', 'true');
-  }, []);
 
   // Firestore auto-sync (D1)
   useEffect(() => {

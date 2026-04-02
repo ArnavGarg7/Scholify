@@ -60,6 +60,7 @@ export default function Onboarding() {
       const hydrated = await pullFromFirestore();
       if (hydrated) {
         // We pulled existing data. Reload the browser to let the stores mount properly
+        sessionStorage.setItem('scholify_session_active', 'true');
         window.location.href = '/';
       } else {
         // Brand new user, default to simple values
@@ -69,6 +70,7 @@ export default function Onboarding() {
         setAuthError('');
         // Immediately complete onboarding
         completeOnboarding();
+        sessionStorage.setItem('scholify_session_active', 'true');
         navigate('/', { replace: true });
       }
     } catch (error: any) {
@@ -201,6 +203,7 @@ export default function Onboarding() {
     }
 
     completeOnboarding();
+    sessionStorage.setItem('scholify_session_active', 'true');
     addToast('Welcome to Scholify! Your setup is complete.', 'success');
     navigate('/', { replace: true });
   };
