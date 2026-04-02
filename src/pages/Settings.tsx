@@ -215,13 +215,17 @@ export default function Settings() {
           <button
             onClick={async () => {
               try {
-                await signOut(auth);
-                sessionStorage.removeItem('scholify_session_active');
-                addToast('Signed out of cloud sync. Data remains locally.', 'info');
-                setTimeout(() => window.location.href = '/onboarding', 500);
+                if (auth.currentUser) {
+                  await signOut(auth);
+                }
               } catch (e) {
-                console.error(e);
+                console.error('Firebase signout error:', e);
               }
+              sessionStorage.removeItem('scholify_session_active');
+              addToast('Signed out of cloud sync. Data remains locally.', 'info');
+              setTimeout(() => {
+                window.location.href = '/onboarding';
+              }, 500);
             }}
             className="flex-1 bg-rf-amber/10 border border-rf-amber/20 text-rf-amber py-3 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 hover:bg-rf-amber/20 transition-colors"
           >

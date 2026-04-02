@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -6,7 +6,7 @@ import { useCoursesStore } from '../stores/coursesStore';
 import { useHolidayStore } from '../stores/holidayStore';
 import { useToastStore } from '../stores/toastStore';
 import { auth, googleProvider, functions } from '../lib/firebase';
-import { signInWithPopup, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { pullFromFirestore } from '../lib/firestore';
 import { httpsCallable } from 'firebase/functions';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -48,31 +48,37 @@ export default function Onboarding() {
   const [localCourses, setLocalCourses] = useState<LocalCourse[]>([]);
 
 
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      if (!auth) return;
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          const hydrated = await pullFromFirestore();
+          if (hydrated) {
+            sessionStorage.setItem('scholify_session_active', 'true');
+            window.location.href = '/';
+          } else {
+            if (result.user.displayName) setName(result.user.displayName);
+            completeOnboarding();
+            sessionStorage.setItem('scholify_session_active', 'true');
+            navigate('/', { replace: true });
+          }
+        }
+      } catch (err: any) {
+        setAuthError(err.message || 'Authentication failed');
+      }
+    };
+    handleRedirectResult();
+  }, [navigate, completeOnboarding]);
+
   const handleGoogleSignIn = async () => {
     if (!auth) {
       setAuthError('Firebase is not configured. Please add your credentials to src/lib/firebase.ts file.');
       return;
     }
     try {
-      await setPersistence(auth, browserSessionPersistence);
-      const result = await signInWithPopup(auth, googleProvider);
-      // Wait to see if we have cloud data to hydrate
-      const hydrated = await pullFromFirestore();
-      if (hydrated) {
-        // We pulled existing data. Reload the browser to let the stores mount properly
-        sessionStorage.setItem('scholify_session_active', 'true');
-        window.location.href = '/';
-      } else {
-        // Brand new user, default to simple values
-        if (result.user.displayName) {
-          setName(result.user.displayName);
-        }
-        setAuthError('');
-        // Immediately complete onboarding
-        completeOnboarding();
-        sessionStorage.setItem('scholify_session_active', 'true');
-        navigate('/', { replace: true });
-      }
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
       setAuthError(error.message || 'Authentication failed');
     }
