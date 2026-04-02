@@ -6,7 +6,7 @@ import { useCoursesStore } from '../stores/coursesStore';
 import { useHolidayStore } from '../stores/holidayStore';
 import { useToastStore } from '../stores/toastStore';
 import { auth, googleProvider, functions } from '../lib/firebase';
-import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { signInWithPopup } from 'firebase/auth';
 import { pullFromFirestore } from '../lib/firestore';
 import { httpsCallable } from 'firebase/functions';
 import * as pdfjsLib from 'pdfjs-dist';
