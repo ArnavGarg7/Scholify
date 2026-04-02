@@ -40,6 +40,7 @@ export default function Onboarding() {
   const [university, setUniversity] = useState('UPES');
   const [scheme, setScheme] = useState('UPES 10-pt scale');
   const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const [semStart, setSemStart] = useState('');
   const [semEnd, setSemEnd] = useState('');
 
@@ -47,12 +48,13 @@ export default function Onboarding() {
   const [extracting, setExtracting] = useState(false);
   const [localCourses, setLocalCourses] = useState<LocalCourse[]>([]);
 
-
   const handleGoogleSignIn = async () => {
     if (!auth) {
       setAuthError('Firebase is not configured. Please add your credentials to src/lib/firebase.ts file.');
       return;
     }
+    setAuthLoading(true);
+    setAuthError('');
     try {
       const result = await signInWithPopup(auth, googleProvider);
       
@@ -69,14 +71,17 @@ export default function Onboarding() {
         if (result.user.displayName) {
           setName(result.user.displayName);
         }
-        setAuthError('');
         
         // Let the user stay on the Onboarding screen to manually fill their university and dates
         // DO NOT call completeOnboarding() yet!
         sessionStorage.setItem('scholify_session_active', 'true');
       }
     } catch (error: any) {
-      setAuthError(error.message || 'Authentication failed');
+      if (error.code !== 'auth/popup-closed-by-user') {
+         setAuthError(error.message || 'Authentication failed');
+      }
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -242,10 +247,20 @@ export default function Onboarding() {
             <div className="mb-6">
               <button
                 onClick={handleGoogleSignIn}
-                className="w-full bg-white hover:bg-gray-100 text-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm"
+                disabled={authLoading}
+                className="w-full bg-white hover:bg-gray-100 disabled:opacity-75 disabled:cursor-not-allowed text-gray-900 py-3 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm"
               >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                Sign in with Google
+                {authLoading ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-gray-500">sync</span>
+                    Syncing Account...
+                  </>
+                ) : (
+                  <>
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                    Sign in with Google
+                  </>
+                )}
               </button>
               {authError && (
                 <p className="text-rf-red text-xs mt-2 text-center font-medium bg-rf-red/10 py-2 rounded-lg border border-rf-red/20">{authError}</p>
