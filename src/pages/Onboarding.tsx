@@ -63,7 +63,7 @@ export default function Onboarding() {
       // (App.tsx global listener handles old users, but we do a fallback check)
       const hydrated = await pullFromFirestore();
       
-      if (hydrated || localStorage.getItem('scholify-settings')) {
+      if (hydrated || useSettingsStore.getState().onboardingCompleted) {
         // We pulled existing data. Route to root
         sessionStorage.setItem('scholify_session_active', 'true');
         window.location.href = '/';
