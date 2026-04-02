@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
 import { getFunctions } from "firebase/functions";
 
@@ -18,5 +18,8 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 const googleProvider = new GoogleAuthProvider();
+
+// Set browser session persistence so closing the tab automatically signs the user out
+setPersistence(auth, browserSessionPersistence).catch(console.error);
 
 export { auth, googleProvider, analytics, functions };

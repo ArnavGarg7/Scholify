@@ -64,7 +64,7 @@ export async function pullFromFirestore(): Promise<boolean> {
       const snap = await getDoc(doc(db, 'users', uid, 'stores', key));
       if (snap.exists()) {
         const { data } = snap.data();
-        if (data) {
+        if (data && data !== localStorage.getItem(key)) {
           localStorage.setItem(key, data);
           hydrated = true;
         }

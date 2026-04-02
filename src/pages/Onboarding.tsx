@@ -7,6 +7,7 @@ import { useHolidayStore } from '../stores/holidayStore';
 import { useToastStore } from '../stores/toastStore';
 import { auth, googleProvider, functions } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
+import { pullFromFirestore } from '../lib/firestore';
 import { httpsCallable } from 'firebase/functions';
 import * as pdfjsLib from 'pdfjs-dist';
 
@@ -46,6 +47,7 @@ export default function Onboarding() {
   const [extracting, setExtracting] = useState(false);
   const [localCourses, setLocalCourses] = useState<LocalCourse[]>([]);
 
+
   const handleGoogleSignIn = async () => {
     if (!auth) {
       setAuthError('Firebase is not configured. Please add your credentials to src/lib/firebase.ts file.');
@@ -53,9 +55,20 @@ export default function Onboarding() {
     }
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      if (result.user.displayName) {
-        setName(result.user.displayName);
+      // Wait to see if we have cloud data to hydrate
+      const hydrated = await pullFromFirestore();
+      if (hydrated) {
+        // We pulled existing data. Reload the browser to let the stores mount properly
+        window.location.href = '/';
+      } else {
+        // Brand new user, default to simple values
+        if (result.user.displayName) {
+          setName(result.user.displayName);
+        }
         setAuthError('');
+        // Immediately complete onboarding
+        completeOnboarding();
+        navigate('/', { replace: true });
       }
     } catch (error: any) {
       setAuthError(error.message || 'Authentication failed');

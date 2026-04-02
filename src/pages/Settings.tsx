@@ -204,35 +204,45 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Sign Out */}
+      {/* Data Clear / Authenication */}
       <div className="rf-card p-4">
         <h3 className="text-sm font-headline font-bold text-white mb-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-rf-red text-lg">logout</span>
           Account
         </h3>
-        <button
-          onClick={async () => {
-            try {
-              await signOut(auth);
-            } catch (e) {
-              // Not signed in via Firebase, that's okay
-            }
-            // Clear all stores
-            const keys = ['scholify-courses', 'scholify-attendance', 'scholify-grades',
-              'scholify-assignments', 'scholify-settings', 'scholify-holidays', 'scholify-notes'];
-            keys.forEach(k => localStorage.removeItem(k));
-            sessionStorage.removeItem('scholify_session_active');
-            addToast('Signed out successfully', 'info');
-            setTimeout(() => {
-              window.location.href = '/onboarding';
-            }, 500);
-          }}
-          className="w-full bg-rf-red/10 border border-rf-red/20 text-rf-red py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-rf-red/20 transition-colors"
-        >
-          <span className="material-symbols-outlined text-sm">logout</span>
-          Sign Out & Clear Data
-        </button>
-        <p className="text-[10px] text-gray-600 mt-2 text-center">This will clear all local data and sign you out.</p>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={async () => {
+              try {
+                await signOut(auth);
+                addToast('Signed out of cloud sync. Data remains locally.', 'info');
+              } catch (e) {
+                console.error(e);
+              }
+            }}
+            className="flex-1 bg-rf-amber/10 border border-rf-amber/20 text-rf-amber py-3 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 hover:bg-rf-amber/20 transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">cloud_off</span>
+            Sign Out
+          </button>
+          
+          <button
+            onClick={async () => {
+              try { await signOut(auth); } catch (e) {}
+              const keys = ['scholify-courses', 'scholify-attendance', 'scholify-grades', 'scholify-assignments', 'scholify-settings', 'scholify-holidays', 'scholify-notes'];
+              keys.forEach(k => localStorage.removeItem(k));
+              sessionStorage.removeItem('scholify_session_active');
+              addToast('All data cleared', 'info');
+              setTimeout(() => { window.location.href = '/onboarding'; }, 500);
+            }}
+            className="flex-1 bg-rf-red/10 border border-rf-red/20 text-rf-red py-3 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 hover:bg-rf-red/20 transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">delete_forever</span>
+            Clear Data
+          </button>
+        </div>
+        <p className="text-[10px] text-gray-600 mt-2 text-center">"Sign Out" pauses cloud sync. "Clear Data" resets the app locally.</p>
       </div>
 
       {/* App Info */}
