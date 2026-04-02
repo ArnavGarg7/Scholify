@@ -14,37 +14,43 @@ export default function AddCourseModal({ onClose, initialCourse }: AddCourseModa
   
   const [name, setName] = useState(initialCourse?.name || '');
   const [code, setCode] = useState(initialCourse?.code || '');
-  const [selectedDays, setSelectedDays] = useState<string[]>(initialCourse?.scheduleDays || []);
-  const [time, setTime] = useState(initialCourse?.time || '09:00 AM');
-  const [room, setRoom] = useState(initialCourse?.room || '');
+  const [credits, setCredits] = useState(initialCourse?.creditHours || 3);
   const [totalHeld, setTotalHeld] = useState(initialCourse?.totalClassesHeld || 0);
   const [totalAttended, setTotalAttended] = useState(initialCourse?.totalAttended || 0);
-  const [credits, setCredits] = useState(initialCourse?.creditHours || 3);
 
-  const toggleDay = (day: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+  // Dynamic slot engine
+  const [timeSlots, setTimeSlots] = useState<{day: string, time: string, room: string}[]>(
+    initialCourse?.timeSlots && initialCourse.timeSlots.length > 0 
+      ? initialCourse.timeSlots 
+      : initialCourse?.scheduleDays && initialCourse.scheduleDays.length > 0
+        ? initialCourse.scheduleDays.map(day => ({ day, time: initialCourse.time || '09:00 AM', room: initialCourse.room || '' }))
+        : [{ day: 'Mon', time: '09:00 AM', room: '' }]
+  );
+
+  const addSlot = () => setTimeSlots([...timeSlots, { day: 'Mon', time: '', room: '' }]);
+  const updateSlot = (index: number, field: 'day' | 'time' | 'room', value: string) => {
+    const newSlots = [...timeSlots];
+    newSlots[index] = { ...newSlots[index], [field]: value };
+    setTimeSlots(newSlots);
   };
+  const removeSlot = (index: number) => setTimeSlots(timeSlots.filter((_, i) => i !== index));
 
   const handleSubmit = () => {
-    if (!name.trim() || selectedDays.length === 0) return;
+    if (!name.trim() || timeSlots.length === 0) return;
     
+    // Derive primitive scheduleDays from the timeSlots array for legacy fallback mapping
+    const distinctDays = Array.from(new Set(timeSlots.map(s => s.day)));
+
     const courseData = {
       name: name.trim(),
       code: code.trim() || name.substring(0, 6).toUpperCase(),
-      scheduleDays: selectedDays,
-      time,
-      room: room.trim(),
+      scheduleDays: distinctDays,
+      time: timeSlots[0]?.time || '',
+      room: timeSlots[0]?.room || '',
       totalClassesHeld: totalHeld,
       totalAttended: totalAttended,
       creditHours: credits,
-      // Regenerate timeSlots to ensure edited timings override old/broken AI timings
-      timeSlots: selectedDays.map(day => ({
-        day,
-        time,
-        room: room.trim()
-      }))
+      timeSlots: timeSlots.map(s => ({ ...s, room: s.room.trim() }))
     };
 
     if (initialCourse) {
@@ -99,48 +105,42 @@ export default function AddCourseModal({ onClose, initialCourse }: AddCourseModa
             />
           </div>
 
-          {/* Schedule Days */}
-          <div>
-            <label className="text-xs font-medium text-gray-400 mb-2 block">Schedule Days</label>
-            <div className="flex gap-2 flex-wrap">
-              {DAYS.map((day) => (
-                <button
-                  key={day}
-                  onClick={() => toggleDay(day)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    selectedDays.includes(day)
-                      ? 'bg-rf-cyan/20 text-rf-cyan border border-rf-cyan/40'
-                      : 'bg-rf-surface text-gray-500 border border-rf-cyan-dim hover:border-rf-cyan/30'
-                  }`}
-                >
-                  {day}
-                </button>
-              ))}
+          {/* Dynamic Slots */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+               <label className="text-xs font-bold text-white uppercase tracking-wider">Class Timings *</label>
+               <button onClick={addSlot} className="text-[10px] bg-rf-cyan/20 text-rf-cyan px-2 py-1 rounded font-bold hover:bg-rf-cyan/30 transition-colors">+ Add Slot</button>
             </div>
-          </div>
-
-          {/* Time & Room */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-gray-400 mb-1 block">Time</label>
-              <input
-                type="text"
-                placeholder="09:00 AM"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full h-12 px-4 text-sm text-white rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-400 mb-1 block">Room</label>
-              <input
-                type="text"
-                placeholder="LT-04"
-                value={room}
-                onChange={(e) => setRoom(e.target.value)}
-                className="w-full h-12 px-4 text-sm text-white rounded-xl"
-              />
-            </div>
+            {timeSlots.map((slot, idx) => (
+              <div key={idx} className="bg-rf-surface/50 border border-rf-cyan-dim/30 p-3 rounded-xl flex gap-2 items-center relative group">
+                 <select 
+                   value={slot.day} 
+                   onChange={(e) => updateSlot(idx, 'day', e.target.value)}
+                   className="h-10 px-2 bg-transparent border-b border-gray-700 text-sm font-bold text-white focus:border-rf-cyan outline-none"
+                 >
+                   {DAYS.map(d => <option key={d} value={d} className="bg-rf-surface">{d}</option>)}
+                 </select>
+                 <input 
+                   type="text" 
+                   value={slot.time} 
+                   onChange={(e) => updateSlot(idx, 'time', e.target.value)}
+                   placeholder="09:00 AM" 
+                   className="h-10 flex-col flex-1 min-w-0 bg-transparent border-b border-gray-700 text-xs text-white focus:border-rf-cyan outline-none rf-number text-center"
+                 />
+                 <input 
+                   type="text" 
+                   value={slot.room} 
+                   onChange={(e) => updateSlot(idx, 'room', e.target.value)}
+                   placeholder="Room" 
+                   className="h-10 flex-col flex-1 min-w-0 bg-transparent border-b border-gray-700 text-xs text-white focus:border-rf-cyan outline-none text-center"
+                 />
+                 {timeSlots.length > 1 && (
+                   <button onClick={() => removeSlot(idx)} className="text-gray-500 hover:text-rf-red transition-colors ml-1 opacity-50 hover:opacity-100">
+                     <span className="material-symbols-outlined text-[18px]">close</span>
+                   </button>
+                 )}
+              </div>
+            ))}
           </div>
 
           {/* Credits */}
@@ -189,7 +189,7 @@ export default function AddCourseModal({ onClose, initialCourse }: AddCourseModa
           {/* Submit */}
           <button
             onClick={handleSubmit}
-            disabled={!name.trim() || selectedDays.length === 0}
+            disabled={!name.trim() || timeSlots.length === 0}
             className="w-full rf-btn-primary h-12 rounded-xl flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-lg">{initialCourse ? 'save' : 'add'}</span>

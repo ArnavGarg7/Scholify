@@ -42,18 +42,20 @@ export const extractTimetable = onCall({
       2. DEDUPLICATE courses: If the SAME course name appears at DIFFERENT times, days, or rooms, 
          combine them into ONE course object. Merge all their days into scheduleDays, and list 
          all their distinct time+room+day combinations in the "timeSlots" array.
-      3. Course identity is determined by NAME (case-insensitive). "Applied Learning" at 8 AM and 
+      3. CRITICAL: If a course meets at DIFFERENT times on DIFFERENT days (e.g., Mon 9 AM but Tue 2 PM),
+         or multiple times on the SAME day, you MUST explicitly capture each unique pair as a separate object inside "timeSlots"!
+      4. Course identity is determined by NAME (case-insensitive). "Applied Learning" at 8 AM and 
          "Applied Learning" at 10 AM is the SAME course with two time slots.
       
       For each UNIQUE course, extract:
       - name: Full course name (e.g., "Data Structures")
       - code: Course code (e.g., "CS201"). If unknown, create an abbreviation.
       - scheduleDays: Combined array of ALL days this course meets (from: "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-      - time: The EARLIEST start time formatted like "09:00 AM"
+      - time: The EARLIEST start time formatted like "09:00 AM" or "02:00 PM"
       - room: The primary room location. If multiple, pick the most common one.
       - creditHours: Integer (default 3 if unknown)
       - timeSlots: Array of ALL distinct time/room/day combinations:
-        [{ "time": "09:00 AM", "room": "LT-04", "day": "Mon" }, { "time": "11:00 AM", "room": "LT-04", "day": "Wed" }]
+        [{ "time": "09:00 AM", "room": "LT-04", "day": "Mon" }, { "time": "02:00 PM", "room": "LT-04", "day": "Tue" }]
 
       TypeScript interface:
       type TimeSlot = { time: string; room: string; day: string; }

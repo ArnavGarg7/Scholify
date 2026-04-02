@@ -41,17 +41,40 @@ export default function Home() {
   const [selectedDay, setSelectedDay] = useState(initialDay);
 
   const selectedDayClasses = useMemo(() => {
-    return courses.filter((c) => c.scheduleDays.includes(selectedDay)).map((c) => {
-      // Find the time slot specific to the selected day
-      const daySlot = c.timeSlots?.find((s) => s.day === selectedDay);
-      return {
-        ...c,
-        displayTime: daySlot?.time || c.time || '',
-        displayRoom: daySlot?.room || c.room || '',
-      };
+    const classesToday: { course: typeof courses[0]; slot: {time: string, room: string, day: string} }[] = [];
+    courses.forEach((c) => {
+      if (c.timeSlots && c.timeSlots.length > 0) {
+        c.timeSlots.forEach(slot => {
+          if (slot.day === selectedDay) {
+            classesToday.push({ course: c, slot });
+          }
+        });
+      } else {
+        // Fallback for legacy courses without timeSlots
+        if (c.scheduleDays.includes(selectedDay)) {
+          classesToday.push({ course: c, slot: { day: selectedDay, time: c.time, room: c.room } });
+        }
+      }
     });
+
+    // Optionally sort by time (very basic string sort for "09:00 AM" format)
+    classesToday.sort((a, b) => a.slot.time.localeCompare(b.slot.time));
+    return classesToday;
   }, [courses, selectedDay]);
-  const todayClasses = courses.filter((c) => isTodayScheduled(c.scheduleDays));
+
+  // For the today banner count, we should count distinct course classes today
+  const todayClasses = useMemo(() => {
+    let count = 0;
+    courses.forEach(c => {
+      if (c.timeSlots && c.timeSlots.length > 0) {
+        count += c.timeSlots.filter(s => s.day === currentDayStr).length;
+      } else if (c.scheduleDays.includes(currentDayStr)) {
+        count += 1;
+      }
+    });
+    return Array.from({ length: count }); // Just for length mapping
+  }, [courses, currentDayStr]);
+
   const pinnedExam = exams.find((e) => e.pinned) || exams[0];
   const pinnedDays = pinnedExam ? daysUntil(pinnedExam.date) : null;
   const todayHoliday = isHoliday(todayStr);
@@ -275,12 +298,14 @@ export default function Home() {
               <p className="text-sm text-gray-500">No classes scheduled for {selectedDay}</p>
             </div>
           ) : (
-            selectedDayClasses.map((course, idx) => {
+            selectedDayClasses.map((item, idx) => {
+              const course = item.course;
+              const slot = item.slot;
               const todayRecord = selectedDay === currentDayStr ? getRecord(course.id, todayStr) : null;
               const isMarked = !!todayRecord;
 
               return (
-                <div key={course.id}
+                <div key={`${course.id}-${idx}`}
                   className={`w-full rf-card p-3.5 flex items-center gap-3 transition-all ${
                     idx === 0 && selectedDay === currentDayStr ? 'border-l-4' : ''
                   } ${isMarked && todayRecord?.status === 'present' ? 'border-l-rf-green bg-rf-green/5' :
@@ -289,12 +314,12 @@ export default function Home() {
                   style={!isMarked && idx === 0 && selectedDay === currentDayStr ? {} : { borderLeftColor: isMarked ? undefined : course.color }}
                 >
                   <div className="flex flex-col items-center justify-center min-w-[52px] border-r border-rf-cyan-dim/30 pr-3">
-                    {course.displayTime ? (
+                    {slot.time ? (
                       <>
                         <span className={`text-xs font-bold rf-number ${idx === 0 && selectedDay === currentDayStr ? 'text-rf-cyan' : 'text-gray-300'}`}>
-                          {course.displayTime.split(' ')[0]}
+                          {slot.time.split(' ')[0]}
                         </span>
-                        <span className="text-[9px] text-gray-500">{course.displayTime.split(' ')[1]}</span>
+                        <span className="text-[9px] text-gray-500">{slot.time.split(' ')[1]}</span>
                       </>
                     ) : (
                       <span className="material-symbols-outlined text-lg text-gray-500">schedule</span>
@@ -304,7 +329,7 @@ export default function Home() {
                     <h4 className="font-bold text-sm text-white truncate">{course.name}</h4>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="material-symbols-outlined text-[12px] text-gray-500">location_on</span>
-                      <span className="text-[10px] text-gray-400">{course.displayRoom || 'TBA'}</span>
+                      <span className="text-[10px] text-gray-400">{slot.room || 'TBA'}</span>
                     </div>
                   </div>
 

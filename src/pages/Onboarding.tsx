@@ -28,6 +28,7 @@ type LocalCourse = {
   time: string;
   room: string;
   creditHours: number;
+  timeSlots?: { day: string; time: string; room: string }[];
 };
 
 export default function Onboarding() {
@@ -117,12 +118,19 @@ export default function Onboarding() {
       const courseMap = new Map<string, LocalCourse>();
       for (const c of data.courses) {
         const key = (c.name || '').trim().toLowerCase();
+        
+        let slots = c.timeSlots || [];
+        if (slots.length === 0 && c.scheduleDays && c.scheduleDays.length > 0) {
+          slots = c.scheduleDays.map((d: string) => ({ day: d, time: c.time || '09:00 AM', room: c.room || '' }));
+        }
+
         if (courseMap.has(key)) {
           const existing = courseMap.get(key)!;
+          existing.timeSlots = [...(existing.timeSlots || []), ...slots];
           const allDays = new Set([...existing.scheduleDays, ...(c.scheduleDays || [])]);
           existing.scheduleDays = Array.from(allDays);
         } else {
-          courseMap.set(key, { ...c, id: crypto.randomUUID() });
+          courseMap.set(key, { ...c, timeSlots: slots, scheduleDays: c.scheduleDays || [], id: crypto.randomUUID() });
         }
       }
       const newCourses = Array.from(courseMap.values());
@@ -142,16 +150,27 @@ export default function Onboarding() {
     );
   };
 
-  const toggleDay = (id: string, day: string) => {
-    setLocalCourses((prev) =>
-      prev.map((c) => {
-        if (c.id !== id) return c;
-        const days = c.scheduleDays.includes(day)
-          ? c.scheduleDays.filter((d) => d !== day)
-          : [...c.scheduleDays, day];
-        return { ...c, scheduleDays: days };
-      })
-    );
+  const updateCourseSlot = (courseId: string, slotIndex: number, field: string, value: string) => {
+    setLocalCourses(prev => prev.map(c => {
+      if (c.id !== courseId) return c;
+      const newSlots = [...(c.timeSlots || [])];
+      newSlots[slotIndex] = { ...newSlots[slotIndex], [field]: value };
+      return { ...c, timeSlots: newSlots };
+    }));
+  };
+
+  const addCourseSlot = (courseId: string) => {
+    setLocalCourses(prev => prev.map(c => {
+      if (c.id !== courseId) return c;
+      return { ...c, timeSlots: [...(c.timeSlots || []), { day: 'Mon', time: '', room: '' }] };
+    }));
+  };
+
+  const removeCourseSlot = (courseId: string, slotIndex: number) => {
+    setLocalCourses(prev => prev.map(c => {
+      if (c.id !== courseId) return c;
+      return { ...c, timeSlots: (c.timeSlots || []).filter((_, i) => i !== slotIndex) };
+    }));
   };
 
   const deleteCourse = (id: string) => {
@@ -168,6 +187,7 @@ export default function Onboarding() {
         scheduleDays: [],
         time: '',
         room: '',
+        timeSlots: [{ day: 'Mon', time: '09:00 AM', room: '' }],
         creditHours: 3,
       },
     ]);
@@ -187,12 +207,14 @@ export default function Onboarding() {
         );
 
         if (!isDuplicate) {
+          const derivedDays = Array.from(new Set((course.timeSlots || []).map(s => s.day)));
           addCourse({
             name: course.name || 'Untitled Course',
             code: course.code || 'UNKNOWN',
-            scheduleDays: course.scheduleDays,
-            time: course.time || '10:00 AM',
-            room: course.room || 'TBA',
+            scheduleDays: derivedDays,
+            time: course.timeSlots?.[0]?.time || course.time || '10:00 AM',
+            room: course.timeSlots?.[0]?.room || course.room || 'TBA',
+            timeSlots: course.timeSlots || [],
             semesterStartDate: semStart || new Date().toISOString(),
             totalClassesHeld: 0,
             totalAttended: 0,
@@ -417,42 +439,39 @@ export default function Onboarding() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[9px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">schedule</span> Time</label>
-                          <input 
-                            value={course.time} onChange={(e) => updateCourse(course.id, 'time', e.target.value)}
-                            placeholder="09:00 AM" 
-                            className="w-full bg-transparent text-xs text-white border-b border-gray-700 focus:border-rf-cyan outline-none pb-1 rf-number"
-                          />
+                      {/* Dynamic Slots UI */}
+                      <div className="pt-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Class Timings</label>
+                          <button onClick={() => addCourseSlot(course.id)} className="text-[9px] text-rf-cyan bg-rf-cyan/10 px-1.5 py-0.5 rounded font-bold hover:bg-rf-cyan/20">+ Slot</button>
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">location_on</span> Room</label>
-                          <input 
-                            value={course.room} onChange={(e) => updateCourse(course.id, 'room', e.target.value)}
-                            placeholder="Room Number" 
-                            className="w-full bg-transparent text-xs text-white border-b border-gray-700 focus:border-rf-cyan outline-none pb-1 rf-number"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Day Picker */}
-                      <div className="pt-2">
-                        <div className="flex justify-between gap-1">
-                          {DAYS.map((day) => (
-                            <button
-                              key={day}
-                              onClick={() => toggleDay(course.id, day)}
-                              className={`flex-1 py-1.5 rounded text-[10px] font-bold transition-all ${
-                                course.scheduleDays.includes(day)
-                                  ? 'bg-rf-cyan text-white'
-                                  : 'bg-rf-card text-gray-500 hover:text-white'
-                              }`}
-                            >
-                              {day}
-                            </button>
-                          ))}
-                        </div>
+                        
+                        {(course.timeSlots || []).map((slot, idx) => (
+                           <div key={idx} className="flex gap-2 items-center bg-black/20 p-2 rounded-lg border border-rf-cyan-dim/10">
+                              <select 
+                                value={slot.day} 
+                                onChange={(e) => updateCourseSlot(course.id, idx, 'day', e.target.value)}
+                                className="bg-transparent text-xs font-bold text-white border-b border-gray-700 focus:border-rf-cyan outline-none rounded-none py-1"
+                              >
+                                {DAYS.map(d => <option key={d} value={d} className="bg-rf-surface">{d}</option>)}
+                              </select>
+                              <input 
+                                value={slot.time} onChange={(e) => updateCourseSlot(course.id, idx, 'time', e.target.value)}
+                                placeholder="09:00 AM" 
+                                className="w-full bg-transparent text-xs text-white border-b border-gray-700 focus:border-rf-cyan outline-none text-center rf-number py-1"
+                              />
+                              <input 
+                                value={slot.room} onChange={(e) => updateCourseSlot(course.id, idx, 'room', e.target.value)}
+                                placeholder="Room" 
+                                className="w-full bg-transparent text-xs text-white border-b border-gray-700 focus:border-rf-cyan outline-none text-center py-1"
+                              />
+                              {(course.timeSlots?.length ?? 1) > 1 && (
+                                <button onClick={() => removeCourseSlot(course.id, idx)} className="text-gray-500 hover:text-rf-red transition-colors ml-1">
+                                  <span className="material-symbols-outlined text-[16px]">close</span>
+                                </button>
+                              )}
+                           </div>
+                        ))}
                       </div>
                     </div>
                   ))}

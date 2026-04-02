@@ -51,12 +51,24 @@ export default function ManageClasses() {
             <div key={course.id} className="rf-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-rf-cyan/30">
               <div>
                 <h3 className="text-base font-bold text-white">{course.name}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] bg-rf-surface px-2 py-0.5 rounded text-gray-300 font-mono">{course.code}</span>
-                  <span className="text-[10px] text-gray-500">• {course.scheduleDays.join(', ')}</span>
-                  <span className="text-[10px] text-gray-500">• {course.time}</span>
-                  <span className="text-[10px] text-gray-500 flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px]">location_on</span>{course.room}</span>
-                </div>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span className="text-[10px] bg-rf-surface px-2 py-0.5 rounded text-gray-300 font-mono">{course.code}</span>
+                    {course.timeSlots && course.timeSlots.length > 0 ? (
+                      <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar whitespace-nowrap">
+                        {course.timeSlots.map((slot, i) => (
+                           <span key={i} className="text-[9px] text-rf-cyan bg-rf-cyan/10 px-1.5 py-0.5 rounded font-bold border border-rf-cyan/20">
+                             {slot.day} {slot.time} <span className="text-gray-400 font-normal ml-0.5">({slot.room || 'TBA'})</span>
+                           </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-[10px] text-gray-500">• {course.scheduleDays.join(', ')}</span>
+                        <span className="text-[10px] text-gray-500">• {course.time}</span>
+                        <span className="text-[10px] text-gray-500 flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px]">location_on</span>{course.room}</span>
+                      </>
+                    )}
+                  </div>
               </div>
 
               <div className="flex items-center gap-2 self-end sm:self-auto">
