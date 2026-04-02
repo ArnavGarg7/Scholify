@@ -55,22 +55,25 @@ export default function Onboarding() {
     }
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      
       // Wait to see if we have cloud data to hydrate
+      // (App.tsx global listener handles old users, but we do a fallback check)
       const hydrated = await pullFromFirestore();
-      if (hydrated) {
-        // We pulled existing data. Reload the browser to let the stores mount properly
+      
+      if (hydrated || localStorage.getItem('scholify-settings')) {
+        // We pulled existing data. Route to root
         sessionStorage.setItem('scholify_session_active', 'true');
         window.location.href = '/';
       } else {
-        // Brand new user, default to simple values
+        // Brand new user!
         if (result.user.displayName) {
           setName(result.user.displayName);
         }
         setAuthError('');
-        // Immediately complete onboarding
-        completeOnboarding();
+        
+        // Let the user stay on the Onboarding screen to manually fill their university and dates
+        // DO NOT call completeOnboarding() yet!
         sessionStorage.setItem('scholify_session_active', 'true');
-        navigate('/', { replace: true });
       }
     } catch (error: any) {
       setAuthError(error.message || 'Authentication failed');

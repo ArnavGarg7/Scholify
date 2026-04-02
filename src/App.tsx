@@ -78,9 +78,10 @@ export default function App() {
         try {
           const hydrated = await pullFromFirestore();
           if (hydrated) {
+            sessionStorage.setItem('scholify_session_active', 'true');
             useToastStore.getState().addToast('Synced data from cloud ☁️', 'info', 2500);
-            // Reload to hydrate all stores from the updated localStorage
-            setTimeout(() => window.location.reload(), 500);
+            // hard navigate to root to ensure stores remount and guard recognizes session
+            setTimeout(() => window.location.href = '/', 500);
           }
         } catch (err) {
           console.warn('Firestore pull failed:', err);
