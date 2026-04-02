@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useHolidayStore } from '../stores/holidayStore';
 import { useCoursesStore } from '../stores/coursesStore';
@@ -18,6 +18,14 @@ export default function AcademicCalendar() {
   const assignments = useAssignmentsStore((s) => s.assignments);
   const attendanceRecords = useAttendanceStore((s) => s.records);
   const addToast = useToastStore((s) => s.addToast);
+  const initializedHolidays = useHolidayStore((s) => s.initialized);
+  const initHolidays = useHolidayStore((s) => s.initializeDefaults);
+
+  useEffect(() => {
+    if (!initializedHolidays) {
+      initHolidays();
+    }
+  }, [initializedHolidays, initHolidays]);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showAddHoliday, setShowAddHoliday] = useState(false);

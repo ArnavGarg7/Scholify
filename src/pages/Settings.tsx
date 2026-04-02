@@ -216,7 +216,9 @@ export default function Settings() {
             onClick={async () => {
               try {
                 await signOut(auth);
+                sessionStorage.removeItem('scholify_session_active');
                 addToast('Signed out of cloud sync. Data remains locally.', 'info');
+                setTimeout(() => window.location.href = '/onboarding', 500);
               } catch (e) {
                 console.error(e);
               }
