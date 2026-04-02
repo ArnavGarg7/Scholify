@@ -6,7 +6,7 @@ import { useCoursesStore } from '../stores/coursesStore';
 import { useHolidayStore } from '../stores/holidayStore';
 import { useToastStore } from '../stores/toastStore';
 import { auth, googleProvider, functions } from '../lib/firebase';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { pullFromFirestore } from '../lib/firestore';
 import { httpsCallable } from 'firebase/functions';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -54,6 +54,7 @@ export default function Onboarding() {
       return;
     }
     try {
+      await setPersistence(auth, browserSessionPersistence);
       const result = await signInWithPopup(auth, googleProvider);
       // Wait to see if we have cloud data to hydrate
       const hydrated = await pullFromFirestore();
