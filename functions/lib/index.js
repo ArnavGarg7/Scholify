@@ -67,9 +67,12 @@ exports.extractTimetable = (0, https_1.onCall)({
       ------
     `;
         const modelsToTry = [
+            'gemini-2.5-flash', // Previously working in user's environment
             'gemini-2.0-flash',
             'gemini-1.5-flash',
-            'gemini-1.5-pro'
+            'gemini-1.5-pro',
+            'gemini-pro',
+            'gemini-1.0-pro'
         ];
         let lastOutcomeText = "";
         let finalModelUsed = "";
