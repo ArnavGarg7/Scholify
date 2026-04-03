@@ -135,10 +135,17 @@ export default function Onboarding() {
       }
       const newCourses = Array.from(courseMap.values());
       setLocalCourses((prev) => [...prev, ...newCourses]);
-      addToast(`Extracted ${newCourses.length} courses successfully!`, 'success');
+      
+      if (newCourses.length > 0) {
+        addToast(`Extracted ${newCourses.length} courses successfully!`, 'success');
+      } else {
+        addToast("No courses found in PDF. Try a clearer file or add manually.", 'warning', 6000);
+      }
     } catch (error: any) {
       console.error("Extraction error:", error);
-      addToast(error.message || "Failed to parse timetable.", 'error', 5000);
+      // Check for timeout or specific Firebase errors
+      const msg = error.message || "Failed to parse timetable.";
+      addToast(msg, 'error', 7000);
     } finally {
       setExtracting(false);
     }

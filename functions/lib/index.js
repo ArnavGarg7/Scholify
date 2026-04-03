@@ -8,7 +8,7 @@ admin.initializeApp();
 // 2nd Generation Cloud Function: Robust Model Fallback + Course Deduplication
 exports.extractTimetable = (0, https_1.onCall)({
     secrets: ["GEMINI_API_KEY"],
-    timeoutSeconds: 60,
+    timeoutSeconds: 120,
     maxInstances: 10,
     cors: true
 }, async (request) => {
@@ -67,11 +67,9 @@ exports.extractTimetable = (0, https_1.onCall)({
       ------
     `;
         const modelsToTry = [
-            'gemini-2.5-flash',
-            'gemini-3.0-flash',
             'gemini-2.0-flash',
-            'gemini-2.0-flash-latest',
-            'gemini-1.5-flash-latest'
+            'gemini-1.5-flash',
+            'gemini-1.5-pro'
         ];
         let lastOutcomeText = "";
         let finalModelUsed = "";
@@ -94,38 +92,66 @@ exports.extractTimetable = (0, https_1.onCall)({
         if (!success) {
             throw new Error("Exhausted all available Gemini models. Your account may have no quota or the API Key is invalid.");
         }
-        console.log(`SUCCESS! Extraction completed with ${finalModelUsed}`);
+        console.log(`SUCCESS! Extraction completed with ${finalModelUsed}. Raw length: ${lastOutcomeText.length}`);
         const cleanJSON = lastOutcomeText.replace(/```json/gi, '').replace(/```/g, '').trim();
-        let extractedCourses = JSON.parse(cleanJSON);
+        let extractedCourses;
+        try {
+            extractedCourses = JSON.parse(cleanJSON);
+        }
+        catch (e) {
+            console.error("JSON Parse Error. Raw Text:", lastOutcomeText);
+            throw new Error("AI returned malformed JSON. Please try again.");
+        }
+        if (!Array.isArray(extractedCourses)) {
+            extractedCourses = extractedCourses.courses || []; // Handle { courses: [...] } wrapper if AI adds it
+        }
         // SERVER-SIDE DEDUPLICATION FALLBACK
-        // Even if the AI doesn't merge perfectly, we do it here
         const courseMap = new Map();
         for (const course of extractedCourses) {
-            const key = (course.name || '').trim().toLowerCase();
-            if (courseMap.has(key)) {
-                const existing = courseMap.get(key);
-                // Merge scheduleDays
-                const allDays = new Set([...existing.scheduleDays, ...course.scheduleDays]);
-                existing.scheduleDays = Array.from(allDays);
-                // Merge timeSlots
-                const existingSlots = existing.timeSlots || [{ time: existing.time, room: existing.room, day: existing.scheduleDays[0] }];
-                const newSlots = course.timeSlots || [{ time: course.time, room: course.room, day: course.scheduleDays[0] }];
-                existing.timeSlots = [...existingSlots, ...newSlots];
-                // Deduplicate timeSlots
-                const slotKeys = new Set();
-                existing.timeSlots = existing.timeSlots.filter((s) => {
-                    const k = `${s.time}-${s.day}-${s.room}`;
-                    if (slotKeys.has(k))
-                        return false;
-                    slotKeys.add(k);
-                    return true;
-                });
-            }
-            else {
-                if (!course.timeSlots || course.timeSlots.length === 0) {
-                    course.timeSlots = [{ time: course.time, room: course.room, day: course.scheduleDays[0] || 'Mon' }];
+            try {
+                const key = (course.name || '').trim().toLowerCase();
+                if (!key)
+                    continue;
+                if (courseMap.has(key)) {
+                    const existing = courseMap.get(key);
+                    // Merge scheduleDays
+                    const allDays = new Set([...(existing.scheduleDays || []), ...(course.scheduleDays || [])]);
+                    existing.scheduleDays = Array.from(allDays);
+                    // Merge timeSlots
+                    const existingSlots = existing.timeSlots || [{
+                            time: existing.time || '09:00 AM',
+                            room: existing.room || 'TBA',
+                            day: (existing.scheduleDays && existing.scheduleDays[0]) || 'Mon'
+                        }];
+                    const newSlots = course.timeSlots || [{
+                            time: course.time || '09:00 AM',
+                            room: course.room || 'TBA',
+                            day: (course.scheduleDays && course.scheduleDays[0]) || 'Mon'
+                        }];
+                    existing.timeSlots = [...existingSlots, ...newSlots];
+                    // Deduplicate timeSlots
+                    const slotKeys = new Set();
+                    existing.timeSlots = existing.timeSlots.filter((s) => {
+                        const k = `${s.time}-${s.day}-${s.room}`;
+                        if (slotKeys.has(k))
+                            return false;
+                        slotKeys.add(k);
+                        return true;
+                    });
                 }
-                courseMap.set(key, course);
+                else {
+                    if (!course.timeSlots || course.timeSlots.length === 0) {
+                        course.timeSlots = [{
+                                time: course.time || '09:00 AM',
+                                room: course.room || 'TBA',
+                                day: (course.scheduleDays && course.scheduleDays[0]) || 'Mon'
+                            }];
+                    }
+                    courseMap.set(key, course);
+                }
+            }
+            catch (err) {
+                console.warn("Skipping malformed course entry:", course, err);
             }
         }
         extractedCourses = Array.from(courseMap.values());
