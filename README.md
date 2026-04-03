@@ -73,5 +73,45 @@ npm run build
 firebase deploy --only hosting
 ```
 
+## 🏗️ System Architecture
+
+Scholify is built with a modern, serverless architecture that prioritizes offline-first reliability while leveraging powerful Cloud AI for schedule parsing.
+
+```mermaid
+graph TD
+    subgraph "Client Side (Browser)"
+        UI[React + Tailwind UI]
+        State[Zustand State Management]
+        Local[browser LocalStorage]
+        PDF[PDF.js Text Extraction]
+    end
+
+    subgraph "Firebase Cloud"
+        Auth[Firebase Auth - Google]
+        DB[(Firestore Database)]
+        Functions[Cloud Functions]
+        Hosting[Firebase Hosting]
+    end
+
+    subgraph "AI Engine"
+        Gemini[Google Gemini AI API]
+    end
+
+    UI <--> State
+    State <--> Local
+    UI -- "Raw PDF Text" --> Functions
+    Functions -- "Smart Prompt" --> Gemini
+    Gemini -- "JSON Schedule" --> Functions
+    Functions -- "Parsed TimeSlots" --> UI
+    State <--> DB
+    Auth <--> UI
+```
+
+### Architecture Breakdown:
+- **Client Layer**: A Vite-powered React application using Zustand for lightning-fast state management. It persists all data to `localStorage` immediately, ensuring zero-latency UI updates.
+- **Data Sync**: Firebase Firestore acts as a secondary sync layer. When authenticated, Zustand background-syncs local changes to the cloud, allowing for multi-device access.
+- **AI Pipeline**: The PDF extraction uses a decoupled logic: the browser extracts raw text via `pdf.js`, which is then sent to a secure Firebase Cloud Function. This function orchestrates a multi-step prompt with Google Gemini to identify complex, disjointed class timings and return structured JSON.
+- **Security**: All API keys and secret prompts are stored in Google Cloud Secret Manager, ensuring the client-side bundle remains lightweight and secure.
+
 ---
 *Developed by Arnav Garg*
