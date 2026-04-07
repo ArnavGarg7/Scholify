@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCoursesStore } from '../stores/coursesStore';
 import { useGradesStore } from '../stores/gradesStore';
 import { useGradeCalc } from '../hooks/useGradeCalc';
+import { useSettingsStore } from '../stores/settingsStore';
 import { getGradeColor } from '../utils/gradeUtils';
 import EmptyState from '../components/ui/EmptyState';
 
@@ -10,7 +11,8 @@ function CourseGradeCard({ courseId }: { courseId: string }) {
   const navigate = useNavigate();
   const course = useCoursesStore((s) => s.courses.find((c) => c.id === courseId));
   const initDefaults = useGradesStore((s) => s.initDefaultComponents);
-  const calc = useGradeCalc(courseId);
+  const scheme = useSettingsStore((s) => s.gradingScheme);
+  const calc = useGradeCalc(courseId, scheme);
 
   if (!course) return null;
 

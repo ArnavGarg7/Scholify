@@ -16,7 +16,7 @@ export default function GradeDetail() {
   const addComponent = useGradesStore((s) => s.addComponent);
   const initDefaults = useGradesStore((s) => s.initDefaultComponents);
   const scheme = useSettingsStore((s) => s.gradingScheme);
-  const calc = useGradeCalc(courseId || '');
+  const calc = useGradeCalc(courseId || '', scheme);
   const [whatIfOverrides, setWhatIfOverrides] = useState<Map<string, number>>(new Map());
   const [editingComponent, setEditingComponent] = useState<GradeComponent | 'new' | null>(null);
   // Inline mark editing: tracks which entered component is being re-edited
