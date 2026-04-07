@@ -65,27 +65,36 @@ export function calculateTargets(
   components: GradeComponent[],
   scheme: GradingScheme = UPES_GRADING_SCHEME
 ): Map<string, Map<string, number>> {
-  // For each grade band, calculate minimum needed in each pending component
+  // For each grade band, calculate the minimum marks needed in each pending component,
+  // assuming the student achieves the SAME PERCENTAGE in every pending component.
   const pending = components.filter((c) => c.obtainedMarks === null);
   const entered = components.filter((c) => c.obtainedMarks !== null);
+
+  // Total weighted score already locked in from entered components
   let enteredTotal = 0;
   for (const comp of entered) {
     enteredTotal += (comp.obtainedMarks! / comp.maxMarks) * comp.weightage;
   }
 
+  // Sum of weightage points still available from pending components
+  const pendingTotalWeight = pending.reduce((sum, c) => sum + c.weightage, 0);
+
   const targets = new Map<string, Map<string, number>>();
 
   for (const grade of scheme.grades) {
     if (grade.points === 0) continue;
-    const needed = grade.minPercentage - enteredTotal;
-    const componentTargets = new Map<string, number>();
 
-    if (pending.length > 0) {
-      const perComponent = needed / pending.length;
-      for (const comp of pending) {
-        const minMarks = Math.max(0, Math.min(comp.maxMarks, (perComponent / comp.weightage) * comp.maxMarks));
-        componentTargets.set(comp.id, Math.ceil(minMarks));
-      }
+    // How many more weighted points are needed from pending components?
+    const needed = grade.minPercentage - enteredTotal;
+    // What fraction of each component's max marks must be achieved?
+    // (same ratio applied to all pending components)
+    const ratio = pendingTotalWeight > 0 ? needed / pendingTotalWeight : 0;
+
+    const componentTargets = new Map<string, number>();
+    for (const comp of pending) {
+      const minMarks = ratio * comp.maxMarks;
+      // Clamp between 0 and maxMarks; ceil so it's a whole number
+      componentTargets.set(comp.id, Math.ceil(Math.max(0, Math.min(comp.maxMarks, minMarks))));
     }
 
     targets.set(grade.grade, componentTargets);
