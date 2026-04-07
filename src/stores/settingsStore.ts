@@ -198,6 +198,16 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
     }),
-    { name: 'scholify-settings' }
+    {
+      name: 'scholify-settings',
+      version: 1,
+      migrate: (persisted: any, fromVersion: number) => {
+        if (fromVersion < 1) {
+          // Fix incorrect UPES grading thresholds stored in old saved data
+          persisted.gradingScheme = UPES_GRADING_SCHEME;
+        }
+        return persisted;
+      },
+    }
   )
 );
