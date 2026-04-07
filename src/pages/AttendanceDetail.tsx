@@ -80,6 +80,10 @@ export default function AttendanceDetail() {
     markAttendance(course.id, getToday(), status);
   };
 
+  // Only show Mark Today panel if today is an actual class day for this course
+  const todayDayAbbr = new Date().toLocaleDateString('en-US', { weekday: 'short' }); // e.g. "Tue"
+  const isTodayAClassDay = course.scheduleDays.includes(todayDayAbbr);
+
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
 
@@ -212,45 +216,57 @@ export default function AttendanceDetail() {
       </div>
 
       {/* Mark Attendance */}
-      <div className="rf-card p-5">
-        <h3 className="font-headline font-bold text-white mb-1">Mark Today's Class</h3>
-        <p className="text-[10px] text-gray-500 mb-4">
-          {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {course.room}
-        </p>
-        <div className="grid grid-cols-1 gap-2.5">
-          <button
-            onClick={() => handleMarkToday('present')}
-            className="group flex items-center justify-between bg-rf-surface hover:bg-rf-green/5 p-3.5 rounded-xl transition-all active:scale-95 border border-rf-cyan-dim/20 hover:border-rf-green/30"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-rf-green/10 flex items-center justify-center text-rf-green group-hover:bg-rf-green group-hover:text-white transition-colors">
-                <span className="material-symbols-outlined text-lg">check_circle</span>
+      {isTodayAClassDay ? (
+        <div className="rf-card p-5">
+          <h3 className="font-headline font-bold text-white mb-1">Mark Today's Class</h3>
+          <p className="text-[10px] text-gray-500 mb-4">
+            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {course.room}
+          </p>
+          <div className="grid grid-cols-1 gap-2.5">
+            <button
+              onClick={() => handleMarkToday('present')}
+              className="group flex items-center justify-between bg-rf-surface hover:bg-rf-green/5 p-3.5 rounded-xl transition-all active:scale-95 border border-rf-cyan-dim/20 hover:border-rf-green/30"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-rf-green/10 flex items-center justify-center text-rf-green group-hover:bg-rf-green group-hover:text-white transition-colors">
+                  <span className="material-symbols-outlined text-lg">check_circle</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-sm text-white">Present</p>
+                  <p className="text-[9px] text-gray-500">Arrived on time</p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="font-bold text-sm text-white">Present</p>
-                <p className="text-[9px] text-gray-500">Arrived on time</p>
-              </div>
-            </div>
-            <span className="material-symbols-outlined text-gray-600 group-hover:text-rf-green">chevron_right</span>
-          </button>
+              <span className="material-symbols-outlined text-gray-600 group-hover:text-rf-green">chevron_right</span>
+            </button>
 
-          <button
-            onClick={() => handleMarkToday('absent')}
-            className="group flex items-center justify-between bg-rf-surface hover:bg-rf-red/5 p-3.5 rounded-xl transition-all active:scale-95 border border-rf-cyan-dim/20 hover:border-rf-red/30"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-rf-red/10 flex items-center justify-center text-rf-red group-hover:bg-rf-red group-hover:text-white transition-colors">
-                <span className="material-symbols-outlined text-lg">cancel</span>
+            <button
+              onClick={() => handleMarkToday('absent')}
+              className="group flex items-center justify-between bg-rf-surface hover:bg-rf-red/5 p-3.5 rounded-xl transition-all active:scale-95 border border-rf-cyan-dim/20 hover:border-rf-red/30"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-rf-red/10 flex items-center justify-center text-rf-red group-hover:bg-rf-red group-hover:text-white transition-colors">
+                  <span className="material-symbols-outlined text-lg">cancel</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-sm text-white">Absent</p>
+                  <p className="text-[9px] text-gray-500">Missed the lecture</p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="font-bold text-sm text-white">Absent</p>
-                <p className="text-[9px] text-gray-500">Missed the lecture</p>
-              </div>
-            </div>
-            <span className="material-symbols-outlined text-gray-600 group-hover:text-rf-red">chevron_right</span>
-          </button>
+              <span className="material-symbols-outlined text-gray-600 group-hover:text-rf-red">chevron_right</span>
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rf-card p-4 flex items-center gap-3 border border-dashed border-rf-cyan-dim/20">
+          <span className="material-symbols-outlined text-gray-600 text-xl">event_busy</span>
+          <div>
+            <p className="text-sm font-bold text-gray-400">No class today</p>
+            <p className="text-[10px] text-gray-600">
+              Next class: {course.scheduleDays.join(' • ')} — tap a calendar date above to update past records.
+            </p>
+          </div>
+        </div>
+      )}
 
       {calc.status === 'danger' && (
         <div className="bg-rf-red/5 rounded-xl p-4 border-l-4 border-rf-red">
