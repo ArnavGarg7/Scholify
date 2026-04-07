@@ -19,6 +19,9 @@ export default function GradeDetail() {
   const calc = useGradeCalc(courseId || '');
   const [whatIfOverrides, setWhatIfOverrides] = useState<Map<string, number>>(new Map());
   const [editingComponent, setEditingComponent] = useState<GradeComponent | 'new' | null>(null);
+  // Inline mark editing: tracks which entered component is being re-edited
+  const [inlineEditId, setInlineEditId] = useState<string | null>(null);
+  const [inlineEditValue, setInlineEditValue] = useState<string>('');
 
   if (!course) {
     return (
@@ -134,14 +137,48 @@ export default function GradeDetail() {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {comp.obtainedMarks !== null ? (
-                    <div className="flex flex-col items-end">
+                  {comp.obtainedMarks !== null && inlineEditId !== comp.id ? (
+                    // Tappable chip — click to edit the entered mark
+                    <button
+                      onClick={() => { setInlineEditId(comp.id); setInlineEditValue(String(comp.obtainedMarks)); }}
+                      title="Tap to update mark"
+                      className="flex items-center gap-1.5 group/chip px-2 py-1 rounded-lg hover:bg-rf-surface transition-colors border border-transparent hover:border-rf-cyan-dim/30"
+                    >
                       <span className="text-lg font-bold text-white rf-number leading-none">
                         {comp.obtainedMarks}
                         <span className="text-[10px] text-gray-500 font-normal">/{comp.maxMarks}</span>
                       </span>
+                      <span className="material-symbols-outlined text-[13px] text-gray-600 group-hover/chip:text-rf-cyan transition-colors">edit</span>
+                    </button>
+                  ) : inlineEditId === comp.id ? (
+                    // Inline edit mode
+                    <div className="flex items-center gap-1">
+                      <input
+                        autoFocus
+                        type="number"
+                        min={0}
+                        max={comp.maxMarks}
+                        value={inlineEditValue}
+                        onChange={(e) => setInlineEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = parseFloat(inlineEditValue);
+                            if (!isNaN(val)) handleMarksUpdate(comp.id, Math.min(val, comp.maxMarks));
+                            setInlineEditId(null);
+                          }
+                          if (e.key === 'Escape') setInlineEditId(null);
+                        }}
+                        onBlur={() => {
+                          const val = parseFloat(inlineEditValue);
+                          if (!isNaN(val)) handleMarksUpdate(comp.id, Math.min(val, comp.maxMarks));
+                          setInlineEditId(null);
+                        }}
+                        className="w-16 h-8 px-2 text-xs text-center text-white rounded-lg rf-number bg-rf-surface border border-rf-cyan focus:outline-none transition-colors"
+                      />
+                      <span className="text-[10px] text-gray-500">/{comp.maxMarks}</span>
                     </div>
                   ) : (
+                    // No marks entered yet
                     <input
                       type="number"
                       min={0}
@@ -295,6 +332,11 @@ function GradeComponentEditor({
   const [name, setName] = useState(initialData?.name || '');
   const [maxMarks, setMaxMarks] = useState(initialData?.maxMarks || 100);
   const [weightage, setWeightage] = useState(initialData?.weightage || 10);
+  const [obtainedMarks, setObtainedMarks] = useState<string>(
+    initialData?.obtainedMarks !== null && initialData?.obtainedMarks !== undefined
+      ? String(initialData.obtainedMarks)
+      : ''
+  );
 
   const totalWeightStr = 
     useGradesStore.getState().components
@@ -346,15 +388,33 @@ function GradeComponentEditor({
             </div>
           </div>
 
+          <div className="space-y-1.5">
+            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1">
+              Obtained Marks <span className="text-gray-600 normal-case font-normal">(leave blank if not yet received)</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={maxMarks}
+              value={obtainedMarks}
+              onChange={(e) => setObtainedMarks(e.target.value)}
+              placeholder="e.g. 78"
+              className="w-full bg-rf-surface border border-rf-cyan-dim rounded-xl px-4 py-3 text-sm text-white focus:border-rf-cyan outline-none transition-colors rf-number"
+            />
+          </div>
+
           <button
-            onClick={() => onSave({
-              courseId,
-              name: name || 'Untitled',
-              category: 'Custom Assessment',
-              maxMarks,
-              weightage,
-              obtainedMarks: initialData?.obtainedMarks || null
-            })}
+            onClick={() => {
+              const parsed = parseFloat(obtainedMarks);
+              onSave({
+                courseId,
+                name: name || 'Untitled',
+                category: 'Custom Assessment',
+                maxMarks,
+                weightage,
+                obtainedMarks: obtainedMarks.trim() !== '' && !isNaN(parsed) ? Math.min(parsed, maxMarks) : null,
+              });
+            }}
             disabled={!name.trim()}
             className="w-full rf-btn-primary py-3 rounded-xl mt-4 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
